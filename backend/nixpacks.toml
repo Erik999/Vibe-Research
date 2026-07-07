@@ -1,0 +1,10 @@
+# Railway 部署配置
+# 启动命令：用 uvicorn 启动 FastAPI，监听 Railway 分配的 PORT
+[phases.setup]
+nixPkgs = ["...", "python311"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "python -m uvicorn app:app --host 0.0.0.0 --port $PORT"
