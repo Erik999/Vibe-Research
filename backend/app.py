@@ -109,6 +109,12 @@ def chat(req: ChatReq):
             raise HTTPException(400, f"未检测到「{kind}」对应的本机命令。请先安装并登录该 CLI，或改用「API 接入」。")
     elif not req.llm.apiKey or not req.llm.baseURL:
         raise HTTPException(400, "缺少 Base URL 或 API Key，请先在「接入 AI」里填写")
+    else:
+        # SSRF 防护：校验 baseURL 为公网 https 端点（挡掉内网/云 metadata 探测）
+        try:
+            chat_layer._validate_base_url(req.llm.baseURL)
+        except RuntimeError as e:
+            raise HTTPException(400, f"LLM 接入地址不合法：{e}")
 
     cfg = req.llm.model_dump()
 

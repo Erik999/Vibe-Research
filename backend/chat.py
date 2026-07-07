@@ -9,7 +9,10 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
+import socket
+from urllib.parse import urlparse
 
 import requests
 
@@ -126,10 +129,7 @@ def _exec_tool(name: str, args: dict):
 
 
 def _call_llm(cfg: dict, messages: list, use_tools: bool) -> dict:
-    base = cfg["baseURL"].rstrip("/")
-    if not base.endswith(("/v1", "/v3", "/api/v3")):
-        # 多数 OpenAI 兼容端点需要 /v1；已带版本段则不动。
-        base = base + "/v1"
+    base = _resolve_base(cfg)  # 校验 baseURL 并规范化（防 SSRF）
     payload = {"model": cfg["model"], "messages": messages, "temperature": 0.3}
     if use_tools:
         payload["tools"] = TOOLS
@@ -202,11 +202,45 @@ def run_chat_cli(cfg: dict, user_messages: list, context: str = "") -> dict:
 # 流式版：yield 事件字典 {type: tool|delta|done|error}，供 /api/chat 以 NDJSON 推给前端
 # ---------------------------------------------------------------------------
 
+def _validate_base_url(raw: str) -> str:
+    """校验 /api/chat 的 baseURL，防 SSRF。
+
+    规则：
+    - 仅允许 http(s)；外部端点（非本机）强制 https。
+    - 解析出的 IP 不能是 私有 / 回环 / 链路本地 / 保留 / 组播 网段，
+      以此挡掉云 metadata（169.254.169.254）、内网管理端口等内网探测。
+    返回规范化的 base（补齐 /v1 等版本段），供后续拼接使用。
+    非法则抛 RuntimeError，由调用方转成 HTTP 400。
+    """
+    base = (raw or "").strip()
+    if not base:
+        raise RuntimeError("baseURL 为空")
+    p = urlparse(base)
+    if p.scheme not in ("http", "https"):
+        raise RuntimeError("baseURL 必须是 http(s) 端点")
+    if p.scheme == "http" and (p.hostname or "") not in ("localhost", "127.0.0.1", "::1"):
+        raise RuntimeError("仅本机允许 http，外部 LLM 端点必须使用 https")
+    host = p.hostname or ""
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except socket.gaierror as e:
+        raise RuntimeError(f"无法解析 baseURL 主机「{host}」") from e
+    for info in infos:
+        ip = info[4][0].split("%", 1)[0]  # 去掉 IPv6 的 %zone
+        try:
+            addr = ipaddress.ip_address(ip)
+        except ValueError:
+            continue
+        if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved or addr.is_multicast:
+            raise RuntimeError(f"baseURL 解析到非公网地址 {ip}，已拒绝（防 SSRF）")
+    norm = base.rstrip("/")
+    if not norm.endswith(("/v1", "/v3", "/api/v3")):
+        norm = norm + "/v1"
+    return norm
+
+
 def _resolve_base(cfg: dict) -> str:
-    base = cfg["baseURL"].rstrip("/")
-    if not base.endswith(("/v1", "/v3", "/api/v3")):
-        base = base + "/v1"
-    return base
+    return _validate_base_url(cfg["baseURL"])
 
 
 def _call_llm_stream(cfg: dict, messages: list, use_tools: bool):
