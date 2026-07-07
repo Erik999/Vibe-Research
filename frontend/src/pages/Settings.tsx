@@ -121,7 +121,7 @@ export function Settings() {
           <input
             value={backendUrl}
             onChange={(e) => { setBackendUrl(e.target.value); setBackendStatus("idle"); }}
-            placeholder="如 https://vibe-api.example.com（留空=本地模式）"
+            placeholder="已默认配置 Railway 后端，无需修改"
             className="flex-1 rounded-lg border border-border bg-black/20 px-3 py-2 text-sm outline-none focus:border-primary/50"
           />
           <button onClick={saveBackend} className="rounded-lg bg-primary/15 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/25">

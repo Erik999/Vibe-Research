@@ -13,9 +13,13 @@ const BACKEND_KEY = "vr-backend-url";
 
 export function loadBackendUrl(): string {
   try {
-    return localStorage.getItem(BACKEND_KEY) || "";
+    const saved = localStorage.getItem(BACKEND_KEY);
+    // 如果用户手动设了，优先用
+    if (saved) return saved;
+    // 生产环境默认使用 Railway 后端
+    return "https://vibe-research-production-a5d7.up.railway.app";
   } catch {
-    return "";
+    return "https://vibe-research-production-a5d7.up.railway.app";
   }
 }
 
