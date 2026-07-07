@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,14 +31,14 @@ app = FastAPI(title="Vibe-Research API", version="0.1.0")
 # 每半小时后台刷新持仓数据
 pf.start_scheduler(1800)
 
-# CORS：默认放开（本地自托管友好）；公网部署时用 VR_ALLOW_ORIGINS 收紧成白名单。
-#   例：VR_ALLOW_ORIGINS="https://myhost"  （逗号分隔多个）
-_ORIGINS = [o.strip() for o in os.environ.get("VR_ALLOW_ORIGINS", "*").split(",") if o.strip()] or ["*"]
+# CORS：公网部署默认仅允许 GitHub Pages；本地开发可设 VR_ALLOW_ORIGINS=* 放开。
+_DEFAULT_ORIGINS = "https://erik999.github.io"
+_ORIGINS = [o.strip() for o in os.environ.get("VR_ALLOW_ORIGINS", _DEFAULT_ORIGINS).split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ORIGINS,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # 可选鉴权：设了 VR_API_KEY 就要求所有 /api/* 带 `Authorization: Bearer <key>`
@@ -53,7 +54,10 @@ async def _require_api_key(request: Request, call_next):
         and request.url.path.startswith("/api/")
         and request.url.path != "/api/health"
     ):
-        if request.headers.get("authorization", "") != f"Bearer {_API_KEY}":
+        if not secrets.compare_digest(
+            request.headers.get("authorization", ""),
+            f"Bearer {_API_KEY}"
+        ):
             return JSONResponse({"detail": "未授权：缺少或错误的 API Key（VR_API_KEY）"}, status_code=401)
     return await call_next(request)
 

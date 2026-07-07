@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Sparkles, Loader2, AlertCircle, RefreshCw, Gauge, ArrowDownUp, TrendingUp, TrendingDown, Plus, X, Flame, BarChart3, Globe } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AskAiButton } from "@/components/ui/AskAiButton";
@@ -246,7 +247,7 @@ export function DailyReview() {
         )}
         {review ? (
           <>
-            <div className="prose prose-sm prose-invert mt-4 max-w-none text-foreground"><ReactMarkdown remarkPlugins={[remarkGfm]}>{review}</ReactMarkdown></div>
+            <div className="prose prose-sm prose-invert mt-4 max-w-none text-foreground"><ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>{review}</ReactMarkdown></div>
             {!reviewLoading && <div className="mt-3"><SaveNoteButton kind="复盘" title={`每日复盘 ${today}`} content={review} /></div>}
           </>
         ) : !needConfig && !reviewErr && !reviewLoading ? (

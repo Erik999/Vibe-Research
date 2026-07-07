@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Trash2, ChevronDown, ChevronRight, NotebookPen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Disclaimer } from "@/components/ui/Disclaimer";
@@ -59,7 +60,7 @@ export function Notes() {
                 {open && (
                   <div className="border-t border-border/40 px-4 py-3">
                     <div className="prose prose-sm prose-invert max-w-none text-foreground">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{n.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>{n.content}</ReactMarkdown>
                     </div>
                   </div>
                 )}
