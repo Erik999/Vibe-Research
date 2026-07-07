@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { KeyRound, Sparkles, ShieldCheck, Check, Trash2, Terminal } from "lucide-react";
+import { KeyRound, Sparkles, ShieldCheck, Check, Trash2, Terminal, Server, Globe, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { toast } from "sonner";
 import { loadLlm, saveLlm, clearLlm } from "@/lib/llm";
-import { loadAccessKey, saveAccessKey } from "@/lib/api";
+import { loadAccessKey, saveAccessKey, loadBackendUrl, saveBackendUrl, authHeaders } from "@/lib/api";
 import { subscriptionModels, apiModels, PROVIDER_BASE, isCliProvider, aiModels, type ProviderId } from "@/lib/ai-models";
 
 export function Settings() {
@@ -22,6 +22,10 @@ export function Settings() {
   const [apiKey, setApiKey] = useState(existing && !existingIsCli ? existing.apiKey : "");
   // 后端访问密钥（对应部署时的 VR_API_KEY）；本机自用不设鉴权时留空
   const [accessKey, setAccessKey] = useState(loadAccessKey());
+  // 后端服务地址（GitHub Pages 等纯静态部署时需要）
+  const [backendUrl, setBackendUrl] = useState(loadBackendUrl());
+  const [checkingBackend, setCheckingBackend] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<"idle" | "ok" | "fail">("idle");
 
   const providerOf = (id: string): ProviderId => aiModels.find((m) => m.id === id)?.provider ?? "openai-compatible";
 
@@ -66,9 +70,76 @@ export function Settings() {
     toast.success(k ? "已保存后端访问密钥（存本地）" : "已清除后端访问密钥");
   };
 
+  const saveBackend = () => {
+    const url = backendUrl.trim().replace(/\/+$/, "");
+    saveBackendUrl(url);
+    setBackendUrl(url);
+    toast.success(url ? "已保存后端地址" : "已清除后端地址，恢复本地模式");
+    setBackendStatus("idle");
+  };
+
+  const checkBackend = async () => {
+    const url = backendUrl.trim().replace(/\/+$/, "");
+    if (!url) { toast.error("请先填写后端地址"); return; }
+    // 自动保存
+    saveBackendUrl(url);
+    setCheckingBackend(true);
+    setBackendStatus("idle");
+    try {
+      const resp = await fetch(`${url}/api/health`, { headers: authHeaders() });
+      if (resp.ok) {
+        setBackendStatus("ok");
+        toast.success("后端连接成功！");
+      } else {
+        setBackendStatus("fail");
+        toast.error(`后端返回 HTTP ${resp.status}`);
+      }
+    } catch {
+      setBackendStatus("fail");
+      toast.error("无法连接到后端，请确认地址正确且后端已启动");
+    } finally {
+      setCheckingBackend(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader title="接入 AI" subtitle="配置一次，全站的「问 AI」「复盘」都能用你自己的模型" />
+
+      {/* 后端服务地址（GitHub Pages / 纯静态部署必填） */}
+      <GlassCard className="mb-4">
+        <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold">
+          <Server className="h-4 w-4 text-primary" /> 后端服务地址
+        </h3>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Vibe-Research 的行情、研报、AI 等功能需要后端服务。
+          本地开发时留空即可（自动走 Vite 代理）；部署到 GitHub Pages 等纯静态托管时，
+          <b className="text-foreground">需要填写你部署的后端地址</b>（如 <code className="rounded bg-muted/50 px-1">https://vibe-api.example.com</code>）。
+          后端项目地址：<code className="rounded bg-muted/50 px-1">/workspace/Vibe-Research/backend</code>
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            value={backendUrl}
+            onChange={(e) => { setBackendUrl(e.target.value); setBackendStatus("idle"); }}
+            placeholder="如 https://vibe-api.example.com（留空=本地模式）"
+            className="flex-1 rounded-lg border border-border bg-black/20 px-3 py-2 text-sm outline-none focus:border-primary/50"
+          />
+          <button onClick={saveBackend} className="rounded-lg bg-primary/15 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/25">
+            保存
+          </button>
+          <button onClick={checkBackend} disabled={checkingBackend || !backendUrl.trim()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50">
+            {checkingBackend ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+            测试连接
+          </button>
+        </div>
+        {backendStatus !== "idle" && (
+          <p className={`mt-2 flex items-center gap-1.5 text-xs ${backendStatus === "ok" ? "text-success" : "text-destructive"}`}>
+            <span className={`inline-block h-2 w-2 rounded-full ${backendStatus === "ok" ? "bg-success" : "bg-destructive"}`} />
+            {backendStatus === "ok" ? "后端连接正常" : "后端连接失败"}
+          </p>
+        )}
+      </GlassCard>
 
       <div className="mb-4 flex items-start gap-2 rounded-lg border border-success/25 bg-success/5 p-3 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />

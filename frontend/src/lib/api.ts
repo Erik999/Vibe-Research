@@ -1,10 +1,41 @@
-// Vibe-Research 后端 API 客户端。/api → vite 代理到本地 FastAPI（默认 8900）。
-// 后端未启动或数据源异常时抛 ApiError，页面据此优雅降级。
+// Vibe-Research 后端 API 客户端。API 地址可在 Settings 页面配置，存 localStorage。
+// 开发环境：空 = 走 Vite proxy → localhost:8900
+// 生产环境（GitHub Pages）：需填写完整后端地址，如 https://vibe-api.example.com
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);
   }
+}
+
+// 后端地址（Settings 页面配置）
+const BACKEND_KEY = "vr-backend-url";
+
+export function loadBackendUrl(): string {
+  try {
+    return localStorage.getItem(BACKEND_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveBackendUrl(url: string) {
+  try {
+    if (url) localStorage.setItem(BACKEND_KEY, url);
+    else localStorage.removeItem(BACKEND_KEY);
+  } catch {
+    /* 隐私模式 */
+  }
+}
+
+function apiBase(): string {
+  const url = loadBackendUrl();
+  if (url) {
+    // 去掉尾部斜杠
+    return url.replace(/\/+$/, "");
+  }
+  // 本地开发：空字符串 = 相对路径 /api → Vite proxy
+  return "";
 }
 
 // 后端访问密钥（对应后端部署时的 VR_API_KEY，公网部署防蹭用）。只存本地浏览器。
@@ -33,6 +64,9 @@ export function authHeaders(): Record<string, string> {
 }
 
 async function request<T>(path: string, method: "GET" | "POST" | "DELETE" = "GET", body?: unknown): Promise<T> {
+  const base = apiBase();
+  const url = base ? `${base}/api${path}` : `/api${path}`;
+
   let resp: Response;
   const headers: Record<string, string> = { ...authHeaders() };
   const opts: RequestInit = { method };
@@ -42,9 +76,11 @@ async function request<T>(path: string, method: "GET" | "POST" | "DELETE" = "GET
   }
   if (Object.keys(headers).length > 0) opts.headers = headers;
   try {
-    resp = await fetch(`/api${path}`, opts);
+    resp = await fetch(url, opts);
   } catch {
-    throw new ApiError("连接不到后端，请先启动 backend（uvicorn app:app --port 8900）", 0);
+    throw new ApiError(base
+      ? `无法连接到后端 ${base}，请确认地址正确且后端已启动`
+      : "连接不到后端，请先启动 backend（uvicorn app:app --port 8900）", 0);
   }
   let payload: any = null;
   try {
@@ -58,7 +94,11 @@ async function request<T>(path: string, method: "GET" | "POST" | "DELETE" = "GET
     }
     throw new ApiError(payload?.detail || `HTTP ${resp.status}`, resp.status);
   }
-  return (payload?.data ?? payload) as T;
+  // 安全提取数据
+  let result: any = (payload?.data !== undefined ? payload.data : payload);
+  // 防御：部分 API 返回 null body → 用空数组兜底（数组 .length 安全，对象 .xxx 也返回 undefined 不炸）
+  if (result === null || result === undefined) result = [];
+  return result as T;
 }
 
 const get = <T>(path: string) => request<T>(path, "GET");

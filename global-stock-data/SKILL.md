@@ -5,9 +5,6 @@ origin: custom
 version: 1.0.1
 ---
 
-> 📦 项目主页：https://github.com/simonlin1212/global-stock-data — 更新、反馈、支持作者
-> 
-> 作者：Simon 林 · 抖音「Simon林」· 公众号「硅基世纪」
 
 # 美股港股全栈数据工具包 V1.0.1
 
@@ -1094,7 +1091,7 @@ def options_chain(symbol: str, expiration: int = None) -> dict:
 ### 7.1 SEC Filing 列表 — EDGAR submissions
 
 ```python
-SEC_HEADERS = {"User-Agent": "SimonLin global-stock-data/1.0 (contact@example.com)"}
+SEC_HEADERS = {"User-Agent": "global-stock-data/1.0"}
 
 def sec_filings(cik: str, form_type: str = None) -> dict:
     """
@@ -1434,4 +1431,3 @@ def market_stock_list(market: str = "us_nasdaq", sort_field: str = "f3",
 | 腾讯财经 | HTTPS | 零 | 美股+港股 行情 |
 | SEC EDGAR | HTTPS | 零(需UA) | 美股 Filing+XBRL |
 
-> 📦 https://github.com/simonlin1212/global-stock-data — Star ⭐ 是最好的支持

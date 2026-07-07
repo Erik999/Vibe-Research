@@ -1,6 +1,6 @@
 // 用户 LLM 配置（只存本地 localStorage，不上传、不进仓库）+ 系统 AI 对话调用。
 
-import { ApiError, authHeaders } from "./api";
+import { ApiError, authHeaders, loadBackendUrl } from "./api";
 import { isCliProvider, type ProviderId } from "./ai-models";
 
 export interface LlmConfig {
@@ -61,8 +61,10 @@ export async function chatStream(messages: ChatMsg[], context: string, handlers:
   if (!llm) throw new ApiError("尚未接入 AI，请先在「接入 AI」里配置", 400);
 
   let resp: Response;
+  const base = loadBackendUrl().replace(/\/+$/, "");
+  const chatUrl = base ? `${base}/api/chat` : "/api/chat";
   try {
-    resp = await fetch("/api/chat", {
+    resp = await fetch(chatUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({ messages, context, llm }),

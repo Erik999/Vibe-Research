@@ -5,9 +5,6 @@ origin: custom
 version: 3.3.0
 ---
 
-> 📦 项目主页：https://github.com/simonlin1212/a-stock-data — 更新、反馈、支持作者
-> 
-> 作者：Simon 林 · 抖音「Simon林」· 公众号「硅基世纪」
 
 # A股全栈数据工具包 V3.3.0
 
@@ -2645,4 +2642,3 @@ export IWENCAI_API_KEY="your_key_here"
 
 ---
 
-> 📦 https://github.com/simonlin1212/a-stock-data — Star ⭐ 是最好的支持

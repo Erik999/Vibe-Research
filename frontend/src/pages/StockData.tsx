@@ -289,7 +289,7 @@ export function StockData() {
           )}
 
           <p className="text-xs text-muted-foreground/60">
-            美股 / 港股数据来自 <a href="https://github.com/simonlin1212/global-stock-data" target="_blank" rel="noreferrer" className="hover:text-primary">global-stock-data</a>（东财域内源）· 金额为原生币种 · 仅客观数据，不含买卖建议。
+            美股 / 港股数据来自东财域内源 · 金额为原生币种 · 仅客观数据，不含买卖建议。
           </p>
         </>
       )}

@@ -4,10 +4,8 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![GitHub stars](https://img.shields.io/github/stars/simonlin1212/Vibe-Research?style=social)](https://github.com/simonlin1212/Vibe-Research/stargazers)
-[![官网 viberesearch.wiki](https://img.shields.io/badge/🌐_官网-viberesearch.wiki-F35D2B?style=flat)](https://viberesearch.wiki)
 
-**[🌐 官网](https://viberesearch.wiki) · [产品预览](#️-产品预览) · [功能](#-功能) · [数据源](#-数据源data-sources) · [快速开始](#-快速开始) · [接入 AI](#-接入-ai) · [合规](#️-合规) · [相关生态](#-相关生态) · [联系作者](#-联系作者)**
+**🌐 官网 · [产品预览](#️-产品预览) · [功能](#-功能) · [数据源](#-数据源data-sources) · [快速开始](#-快速开始) · [接入 AI](#-接入-ai) · [合规](#️-合规) · [相关生态](#-相关生态)**
 
 > **Vibe-Research: Your Personal Trading Research Agent** · A股 / 美股 / 港股 的个人投研 Agent。
 >
@@ -72,18 +70,18 @@ Vibe-Research 把三套公开数据源**直接集成进仓库**——`git clone`
 - **覆盖**：行情 / K线 / 研报 / 一致预期 / 估值 / 历史分位 / 财务三表 / 公告 / 龙虎榜 / 融资融券 / 大宗交易 / 股东户数 / 分红 / 资金流 / 解禁 / 概念板块 / 打板情绪 / ETF 期权 / 互动易 / 全市场行业排名 …
 - **给 agent 用**：用 Claude Code 等 agent 跑本仓库时，要调 A 股数据就看 [`a-stock-data/SKILL.md`](a-stock-data/SKILL.md)——每个接口都有 copy-paste 即用的代码。Vibe-Research 后端的数据层（`backend/astock.py`）也是从它移植的。
 - **运行依赖**：`pip install mootdx requests pandas stockstats`（自包含，v3.0 起已移除 akshare 依赖）。
-- **更新 / 上游**：<https://github.com/simonlin1212/a-stock-data> —— 想跟进最新端点、扩数据源，去这里看；**但即便你不更新，仓库自带的这份也是固定可用的快照，可以一直用。**
+- **更新 / 上游**：a-stock-data —— 想跟进最新端点、扩数据源，去这里看；**但即便你不更新，仓库自带的这份也是固定可用的快照，可以一直用。**
 
 ### 美股 / 港股数据 · global-stock-data
 
 - **就在本仓库的 [`global-stock-data/`](global-stock-data/) 文件夹里**（v1.0.1）。8 层数据架构、18 个端点、零鉴权，覆盖美港股行情 / K线 / 技术指标 / 三表财报 / 资金流 / 期权 / SEC。
 - 后端 `backend/gstock.py` 移植了**东财域内的合规子集**：全球指数（每日复盘「全球市场」栏）+ 美港股个股行情 & 关键财务指标（个股页输 `AAPL` / `00700` 即用）。东财调用复用 `astock.em_get`（直连优先，避开科学上网代理挂国内站）。
-- **上游**：<https://github.com/simonlin1212/global-stock-data> —— 想要 K线 / 技术指标 / 期权 / SEC 等全量端点，去这里看。
+- **上游**：global-stock-data —— 想要 K线 / 技术指标 / 期权 / SEC 等全量端点，去这里看。
 
 ### 全球资讯 · investment-news
 
 - 12 赛道 108 个公开 RSS 源，已并入 `backend/newsradar.py` + `backend/news_sources.json`：纯标准库、零 key、已按合规词表过滤（剔除赌 / 预测市场 / 加密等）。
-- **上游**：<https://github.com/simonlin1212/investment-news>
+- **上游**：investment-news
 
 > 数据均来自公开源。Vibe-Research 只做客观信息整理与公开榜单呈现（连板股 / 成交额榜等，与东财 / 同花顺同款客观数据），**只呈现事实、不推荐个股、不预测涨跌、不给买卖时机、不做主观评分**；用这些数据做什么分析、看什么方向，由你和你自己的 AI 决定。
 
@@ -160,28 +158,21 @@ cd backend && .venv/bin/pip install -r requirements-dev.txt
 
 ## 🏛 相关生态
 
-Vibe-Research 用到的数据 / 工具，来自同一套自研开源体系（都在 [`simonlin1212`](https://github.com/simonlin1212)）：
+Vibe-Research 用到的数据 / 工具，来自同一套自研开源体系：
 
 | 仓库 | 定位 |
 |---|---|
-| [**a-stock-data**](https://github.com/simonlin1212/a-stock-data) | A 股全栈数据工具包（10 层 · 40 端点）—— 本项目的 A 股数据引擎 |
-| [**global-stock-data**](https://github.com/simonlin1212/global-stock-data) | 美股 / 港股全栈数据工具包（7 层 · 17 端点） |
-| [**investment-news**](https://github.com/simonlin1212/investment-news) | 全球产业链资讯看板（12 赛道一一对应 A 股板块）—— 本项目的资讯源 |
-| [**Agent-Staff**](https://github.com/simonlin1212/Agent-Staff) | 把公司 Agent 化：每部门一个 AI agent + CEO 参谋长，常驻飞书 |
-
-## 📬 联系作者
-
-作者 **Simon**，独立开发者。
-
-- 🌐 主页：<https://www.simonlin.net>
-- 💬 欢迎交流**企业 AI 落地方案**；项目相关问题也可提 [Issue](https://github.com/simonlin1212/Vibe-Research/issues)。
+| a-stock-data | A 股全栈数据工具包（10 层 · 40 端点）—— 本项目的 A 股数据引擎 |
+| global-stock-data | 美股 / 港股全栈数据工具包（7 层 · 17 端点） |
+| investment-news | 全球产业链资讯看板（12 赛道一一对应 A 股板块）—— 本项目的资讯源 |
+| Agent-Staff | 把公司 Agent 化：每部门一个 AI agent + CEO 参谋长，常驻飞书 |
 
 ## 🙏 致谢
 
-- A 股数据引擎：[a-stock-data](https://github.com/simonlin1212/a-stock-data)（作者：Simonlin1212）
-- 美股 / 港股数据引擎：[global-stock-data](https://github.com/simonlin1212/global-stock-data)（作者：Simonlin1212）
-- 资讯：[investment-news](https://github.com/simonlin1212/investment-news)（作者：Simonlin1212）
-- 界面设计语言参考并致谢：[HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading)（作者：HKUDS · 仅借鉴 UI，底层为全新实现）
+- A 股数据引擎：a-stock-data
+- 美股 / 港股数据引擎：global-stock-data
+- 资讯：investment-news
+- 界面设计语言参考并致谢：[HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading)
 
 ## ⚠️ 免责声明
 
